@@ -1,5 +1,8 @@
 package com.hbadget.happy_budget.models.dtos;
 
+import com.hbadget.happy_budget.models.enums.IncomeCategory;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -7,8 +10,10 @@ import java.time.LocalDateTime;
 @Data
 public class IncomeDTO {
     private Long id;
-    private int incomeSum;
+    private double incomeSum;
     private LocalDateTime incomeDate;
-    private String incomeCategory;
+
+    @Enumerated(EnumType.STRING)
+    private IncomeCategory incomeCategory;
 }
 

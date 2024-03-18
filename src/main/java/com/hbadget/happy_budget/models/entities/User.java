@@ -3,6 +3,8 @@ package com.hbadget.happy_budget.models.entities;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -13,12 +15,21 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "username")
+    private String username;
 
     @Column(name = "birthday")
     private LocalDate birthday;
 
     @Column(name = "email", unique = true)
     private String email;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    List<Income> incomes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    List<Expense> expenses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    List<Budget> budgets = new ArrayList<>();
 }

@@ -11,6 +11,6 @@ public class ReportDTO {
 
     private Long id;
     private LocalDateTime date;
-    private Income incomeSum;
-    private Expense expenseSum;
+    private double incomeSum;
+    private double expenseSum;
 }

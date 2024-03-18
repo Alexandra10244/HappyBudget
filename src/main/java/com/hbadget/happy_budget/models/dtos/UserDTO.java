@@ -11,7 +11,7 @@ public class UserDTO {
 
     @NotBlank(message = "This field must not be empty!")
     @Size(min = 2, message = "Invalid name")
-    private String name;
+    private String username;
 
     @NotBlank(message = "This field must not be empty!")
     private String phoneNumber;

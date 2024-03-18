@@ -1,5 +1,6 @@
 package com.hbadget.happy_budget.models.entities;
 
+import com.hbadget.happy_budget.models.enums.BudgetCategory;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,8 +14,13 @@ public class Budget {
     private Long id;
 
     @Column(name = "budget_sum")
-    private int budgetSum;
+    private double budgetSum;
 
     @Column(name = "budget_category")
-    private String budgetCategory;
+    @Enumerated(EnumType.STRING)
+    private BudgetCategory budgetCategory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

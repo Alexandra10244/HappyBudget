@@ -1,5 +1,6 @@
 package com.hbadget.happy_budget.models.entities;
 
+import com.hbadget.happy_budget.models.enums.ExpenseCategory;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,11 +16,15 @@ public class Expense {
     private Long id;
 
     @Column(name = "expense_sum")
-    private int expenseSum;
+    private double expenseSum;
 
     @Column(name = "expense_date")
     private LocalDateTime expenseDate;
 
     @Column(name = "expense_category")
-    private String expenseCategory;
+    private ExpenseCategory expenseCategory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

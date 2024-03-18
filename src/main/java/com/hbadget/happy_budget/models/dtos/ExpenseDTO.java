@@ -1,5 +1,8 @@
 package com.hbadget.happy_budget.models.dtos;
 
+import com.hbadget.happy_budget.models.enums.ExpenseCategory;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -8,7 +11,9 @@ import java.time.LocalDateTime;
 public class ExpenseDTO {
 
     private Long id;
-    private int expenseSum;
+    private double expenseSum;
     private LocalDateTime expenseDate;
-    private String expenseCategory;
+
+    @Enumerated(EnumType.STRING)
+    private ExpenseCategory expenseCategory;
 }
