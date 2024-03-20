@@ -4,6 +4,8 @@ import com.hbadget.happy_budget.models.enums.BudgetCategory;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Entity
 @Table(name = "budgets")
@@ -15,6 +17,9 @@ public class Budget {
 
     @Column(name = "budget_sum")
     private double budgetSum;
+
+    @Column(name = "budget_date")
+    private LocalDateTime budgetDate;
 
     @Column(name = "budget_category")
     @Enumerated(EnumType.STRING)

@@ -1,6 +1,7 @@
 package com.hbadget.happy_budget.repositories;
 
 import com.hbadget.happy_budget.models.entities.Budget;
+import com.hbadget.happy_budget.models.enums.BudgetCategory;
 import com.hbadget.happy_budget.repositories.projections.ReportProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,21 +14,6 @@ import java.util.List;
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget,Long> {
 
-//    @Query(value = "SELECT expenses.expense_sum, expenses.expense_category, expenses.expense_date, incomes.income_sum, incomes.income_category, incomes.income_date,\n" +
-//            "FROM (expenses\n" +
-//            "INNER JOIN incomes ON expenses.expense_date = incomes.income_date)\n" +
-//            "WHERE expenses.expense_date = :date", nativeQuery = true)
-//    List<ReportProjection> findAllExpensesIncomesByDate(@Param("date") LocalDate date);
-
-
-//    @Query(value = "SELECT expenses.expense_sum, expenses.expense_category, expenses.expense_date, " +
-//            "incomes.income_sum, incomes.income_category, incomes.income_date" +
-//            "FROM expenses " +
-//            "INNER JOIN incomes ON DATE(expenses.expense_date) = DATE(incomes.income_date) " +
-//            "WHERE DATE(expenses.expense_date) = :date", nativeQuery = true)
-//    List<ReportProjection> findAllExpensesIncomesByDate(@Param("date") LocalDate date);
-
-
     @Query(value = "SELECT expenses.expense_sum, expenses.expense_category, expenses.expense_date, " +
             "incomes.income_sum, incomes.income_category, incomes.income_date" +
             "FROM ((users " +
@@ -38,5 +24,18 @@ public interface BudgetRepository extends JpaRepository<Budget,Long> {
             "AND users.id = :userId" ,
             nativeQuery = true)
     List<ReportProjection> findAllExpensesIncomesByDate(@Param("date") LocalDate date, @Param("userId") Long userId);
+
+    @Query(value = "SELECT *" +
+            "FROM budgets" +
+            "WHERE budget_category = :budgetCategory",
+            nativeQuery = true)
+    List<Budget> findBudgetByCategory(@Param("budgetCategory") BudgetCategory budgetCategory);
+
+    @Query(value = "SELECT budget.budget_sum, budgets.budget_category, incomes.income_date" +
+            "FROM budgets" +
+            "WHERE DATE(budgets.budget_date) = :date" +
+            "AND users.id = :userId" ,
+            nativeQuery = true)
+    List<Budget> findAllBudgetsByDate(@Param("date") LocalDate date, @Param("userId") Long userId);
 
 }

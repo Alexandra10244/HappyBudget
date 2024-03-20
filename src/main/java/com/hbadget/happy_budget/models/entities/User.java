@@ -24,6 +24,9 @@ public class User {
     @Column(name = "email", unique = true)
     private String email;
 
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     List<Income> incomes = new ArrayList<>();
 
