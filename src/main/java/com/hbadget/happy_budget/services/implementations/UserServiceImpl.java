@@ -1,6 +1,8 @@
 package com.hbadget.happy_budget.services.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hbadget.happy_budget.exceptions.InvalidEmailFormatException;
+import com.hbadget.happy_budget.exceptions.InvalidPhoneNumberException;
 import com.hbadget.happy_budget.exceptions.UserNotFoundException;
 import com.hbadget.happy_budget.models.dtos.UserDTO;
 import com.hbadget.happy_budget.models.entities.User;
@@ -45,5 +47,20 @@ public class UserServiceImpl implements UserService {
         }
             return objectMapper.convertValue(user, UserDTO.class);
 
+    }
+
+    private void validatedUserDTO(UserDTO userDTO) {
+        String email = userDTO.getEmail();
+        String phoneNumber = userDTO.getPhoneNumber();
+
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new InvalidEmailFormatException("Invalid email.");
+        }
+
+        if (phoneNumber == null || !phoneNumber.matches("^(\\+\\d{1,3}( )?)?((\\(\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{4}$"
+                + "|^(\\+\\d{1,3}( )?)?(\\d{3}[ ]?){2}\\d{3}$"
+                + "|^(\\+\\d{1,3}( )?)?(\\d{3}[ ]?)(\\d{2}[ ]?){2}\\d{2}$")) {
+            throw new InvalidPhoneNumberException("Invalid phone number.");
+        }
     }
 }

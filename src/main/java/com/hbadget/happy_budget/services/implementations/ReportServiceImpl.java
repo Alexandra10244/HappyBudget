@@ -32,8 +32,8 @@ public class ReportServiceImpl implements ReportService {
     private final BudgetRepository budgetRepository;
 
     @Override
-    public List<IncomeDTO> getAllIncomesByDate(LocalDate date, Long userId) {
-        List<Income> incomes = incomeRepository.findAllIncomesByDate(date, userId);
+    public List<IncomeDTO> getAllIncomesByDate(LocalDate startDate, LocalDate endDate, Long userId) {
+        List<Income> incomes = incomeRepository.findAllIncomesByDate(startDate, endDate, userId);
         if (incomes.isEmpty()) {
             return Collections.emptyList();
         }
@@ -43,8 +43,8 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<ExpenseDTO> getAllIExpensesByDate(LocalDate date, Long userId) {
-        List<Expense> expenses = expenseRepository.findAllExpensesByDate(date, userId);
+    public List<ExpenseDTO> getAllExpensesByDate(LocalDate startDate, LocalDate endDate, Long userId) {
+        List<Expense> expenses = expenseRepository.findAllExpensesByDate(startDate, endDate, userId);
         if (expenses.isEmpty()) {
             return Collections.emptyList();
         }
@@ -54,8 +54,8 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<BudgetDTO> getAllBudgetsByDate(LocalDate date, Long userId) {
-        List<Budget> budgets = budgetRepository.findAllBudgetsByDate(date, userId);
+    public List<BudgetDTO> getAllBudgetsByDate(LocalDate startDate, LocalDate endDate, Long userId) {
+        List<Budget> budgets = budgetRepository.findAllBudgetsByDate(startDate, endDate, userId);
 
         if (budgets.isEmpty()) {
             return Collections.emptyList();
@@ -67,8 +67,8 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<ReportDTO> getAllExpensesIncomesByDate(LocalDate date, Long userId) {
-        List<ReportProjection> reports = budgetRepository.findAllExpensesIncomesByDate(date, userId);
+    public List<ReportDTO> getAllExpensesIncomesByDate(LocalDate startDate, LocalDate endDate, Long userId) {
+        List<ReportProjection> reports = budgetRepository.findAllExpensesIncomesByDate(startDate, endDate, userId);
         List<ReportDTO> reportDTOS = new ArrayList<>();
 
         for (ReportProjection reportProjection : reports) {

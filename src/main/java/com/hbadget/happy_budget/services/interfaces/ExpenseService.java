@@ -11,7 +11,7 @@ public interface ExpenseService {
 
     ExpenseDTO updateExpense(ExpenseDTO expenseDTO, Long id);
 
-    String deleteIncome(Long id);
+    String deleteExpense(Long id);
 
    List<ExpenseDTO> getExpenseByCategory(ExpenseCategory expenseCategory);
 }

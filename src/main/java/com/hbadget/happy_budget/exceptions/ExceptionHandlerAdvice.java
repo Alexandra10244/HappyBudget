@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @Slf4j
 @ControllerAdvice
@@ -46,6 +46,16 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(IncomeNotFoundException.class)
     public ResponseEntity<String> incomeNotFoundException(IncomeNotFoundException incomeNotFoundException) {
         return new ResponseEntity<>(objectToString(Map.of("message", incomeNotFoundException.getMessage())), NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidPhoneNumberException.class)
+    public ResponseEntity<String> invalidPhoneNumberException(InvalidPhoneNumberException invalidPhoneNumberException) {
+        return new ResponseEntity<>(objectToString(Map.of("message", invalidPhoneNumberException.getMessage())), CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidEmailFormatException.class)
+    public ResponseEntity<String> invalidEmailFormatException(InvalidEmailFormatException invalidEmailFormatException) {
+        return new ResponseEntity<>(objectToString(Map.of("message", invalidEmailFormatException.getMessage())), CONFLICT);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

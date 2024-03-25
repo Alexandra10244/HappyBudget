@@ -15,10 +15,11 @@ import java.util.Optional;
 public interface IncomeRepository extends JpaRepository<Income, Long> {
     @Query(value = "SELECT incomes.income_sum, incomes.income_category, incomes.income_date" +
             "FROM incomes" +
-            "WHERE DATE(incomes.income_date) = :date" +
-            "AND users.id = :userId" ,
+            "WHERE DATE(incomes.income_date) >= :startDate" +
+            "AND DATE(incomes.income_date) <= :endDate" +
+            "AND user_id = :userId" ,
             nativeQuery = true)
-    List<Income> findAllIncomesByDate(@Param("date") LocalDate date, @Param("userId") Long userId);
+    List<Income> findAllIncomesByDate(@Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate,@Param("userId") Long userId);
 
     @Query(value = "SELECT *" +
             "FROM incomes" +

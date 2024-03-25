@@ -47,7 +47,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public String deleteIncome(Long id) {
+    public String deleteExpense(Long id) {
         if (expenseRepository.existsById(id)) {
             expenseRepository.deleteById(id);
         }

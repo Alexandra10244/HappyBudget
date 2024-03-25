@@ -12,18 +12,18 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface BudgetRepository extends JpaRepository<Budget,Long> {
+public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
     @Query(value = "SELECT expenses.expense_sum, expenses.expense_category, expenses.expense_date, " +
             "incomes.income_sum, incomes.income_category, incomes.income_date" +
             "FROM ((users " +
             "INNER JOIN expenses ON users.id = expenses.user_id) " +
             "INNER JOIN incomes ON users.id = incomes.user_id) " +
-            "WHERE DATE(expenses.expense_date) = :date " +
-            "AND DATE(incomes.income_date) = :date" +
-            "AND users.id = :userId" ,
+            "WHERE DATE(expenses.expense_date) >= :startDate " +
+            "AND DATE(incomes.income_date) <= :endDate" +
+            "AND users.id = :userId",
             nativeQuery = true)
-    List<ReportProjection> findAllExpensesIncomesByDate(@Param("date") LocalDate date, @Param("userId") Long userId);
+    List<ReportProjection> findAllExpensesIncomesByDate(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("userId") Long userId);
 
     @Query(value = "SELECT *" +
             "FROM budgets" +
@@ -31,11 +31,12 @@ public interface BudgetRepository extends JpaRepository<Budget,Long> {
             nativeQuery = true)
     List<Budget> findBudgetByCategory(@Param("budgetCategory") BudgetCategory budgetCategory);
 
-    @Query(value = "SELECT budget.budget_sum, budgets.budget_category, incomes.income_date" +
+    @Query(value = "SELECT budget.budget_sum, budgets.budget_category, budgets.budget_date" +
             "FROM budgets" +
-            "WHERE DATE(budgets.budget_date) = :date" +
-            "AND users.id = :userId" ,
+            "WHERE DATE(budgets.budget_date) >= :startDate" +
+            "AND DATE(budgets.budget_date) <= :endDate" +
+            "AND user_id = :userId",
             nativeQuery = true)
-    List<Budget> findAllBudgetsByDate(@Param("date") LocalDate date, @Param("userId") Long userId);
+    List<Budget> findAllBudgetsByDate(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("userId") Long userId);
 
 }
