@@ -1,8 +1,11 @@
 package com.hbadget.happy_budget.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hbadget.happy_budget.models.enums.IncomeCategory;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -17,6 +20,7 @@ public class Income {
     @Column(name = "income_sum")
     private double incomeSum;
 
+    @CreationTimestamp
     @Column(name = "income_date")
     private LocalDateTime incomeDate;
 
@@ -26,5 +30,6 @@ public class Income {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 }

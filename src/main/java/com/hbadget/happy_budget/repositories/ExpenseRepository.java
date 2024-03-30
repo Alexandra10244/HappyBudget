@@ -17,9 +17,10 @@ import java.util.Optional;
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query(value = "SELECT *" +
             "FROM expenses" +
-            "WHERE expense_category = :expenseCategory",
+            "WHERE expense_category = :expenseCategory"+
+            "AND user_id = :userId",
             nativeQuery = true)
-    List<Expense> findExpenseByCategory(@Param("expenseCategory") ExpenseCategory expenseCategory);
+    List<Expense> findExpenseByCategory(@Param("expenseCategory") ExpenseCategory expenseCategory,@Param("userId") Long userId);
 
     @Query(value = "SELECT expenses.expense_sum, expenses.expense_category, expenses.expense_date" +
             "FROM expenses" +

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @Validated
@@ -17,25 +18,25 @@ import java.util.List;
 @RequestMapping("/api/incomes")
 public class IncomeController {
 
-    private IncomeService incomeService;
+    private final IncomeService incomeService;
 
     @PostMapping
-    public ResponseEntity<IncomeDTO> createIncome(@RequestBody IncomeDTO incomeDTO) {
-        return ResponseEntity.ok(incomeService.createIncome(incomeDTO));
+    public ResponseEntity<IncomeDTO> createIncome(@RequestBody IncomeDTO incomeDTO,Principal connectedUser) {
+        return ResponseEntity.ok(incomeService.createIncome(incomeDTO, connectedUser));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<IncomeDTO> updateIncome(@Valid @RequestBody IncomeDTO incomeDTO, @PathVariable Long id) {
-        return ResponseEntity.ok(incomeService.updateIncome(incomeDTO, id));
+    public ResponseEntity<IncomeDTO> updateIncome(@Valid @RequestBody IncomeDTO incomeDTO, @PathVariable Long id, Principal connectedUser) {
+        return ResponseEntity.ok(incomeService.updateIncome(incomeDTO, id, connectedUser));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteIncome(@PathVariable Long id) {
-        return ResponseEntity.ok(incomeService.deleteIncome(id));
+    public ResponseEntity<String> deleteIncome(@PathVariable Long id, Principal connectedUser) {
+        return ResponseEntity.ok(incomeService.deleteIncome(id, connectedUser));
     }
 
     @GetMapping("/{incomeCategory}")
-    public ResponseEntity<List<IncomeDTO>> getIncomeByCategory(@PathVariable IncomeCategory incomeCategory) {
-        return ResponseEntity.ok(incomeService.getIncomeByCategory(incomeCategory));
+    public ResponseEntity<List<IncomeDTO>> getIncomeByCategory(@PathVariable IncomeCategory incomeCategory, Principal connectedUser) {
+        return ResponseEntity.ok(incomeService.getIncomeByCategory(incomeCategory, connectedUser));
     }
 }

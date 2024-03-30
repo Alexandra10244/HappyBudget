@@ -27,9 +27,10 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
     @Query(value = "SELECT *" +
             "FROM budgets" +
-            "WHERE budget_category = :budgetCategory",
+            "WHERE budget_category = :budgetCategory" +
+            "AND user_id = :userId",
             nativeQuery = true)
-    List<Budget> findBudgetByCategory(@Param("budgetCategory") BudgetCategory budgetCategory);
+    List<Budget> findBudgetByCategory(@Param("budgetCategory") BudgetCategory budgetCategory, @Param("userId") Long userId);
 
     @Query(value = "SELECT budget.budget_sum, budgets.budget_category, budgets.budget_date" +
             "FROM budgets" +

@@ -23,7 +23,8 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
 
     @Query(value = "SELECT *" +
             "FROM incomes" +
-            "WHERE income_category = :incomeCategory",
+            "WHERE income_category = :incomeCategory" +
+            "AND user_id = :userId",
             nativeQuery = true)
-    List<Income> findIncomeByCategory(@Param("incomeCategory") IncomeCategory incomeCategory);
+    List<Income> findIncomeByCategory(@Param("incomeCategory") IncomeCategory incomeCategory,@Param("userId") Long userId);
 }

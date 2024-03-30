@@ -8,14 +8,18 @@ import com.hbadget.happy_budget.models.dtos.ReportDTO;
 import com.hbadget.happy_budget.models.entities.Budget;
 import com.hbadget.happy_budget.models.entities.Expense;
 import com.hbadget.happy_budget.models.entities.Income;
+import com.hbadget.happy_budget.models.entities.User;
 import com.hbadget.happy_budget.repositories.BudgetRepository;
 import com.hbadget.happy_budget.repositories.ExpenseRepository;
 import com.hbadget.happy_budget.repositories.IncomeRepository;
 import com.hbadget.happy_budget.repositories.projections.ReportProjection;
 import com.hbadget.happy_budget.services.interfaces.ReportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,8 +36,9 @@ public class ReportServiceImpl implements ReportService {
     private final BudgetRepository budgetRepository;
 
     @Override
-    public List<IncomeDTO> getAllIncomesByDate(LocalDate startDate, LocalDate endDate, Long userId) {
-        List<Income> incomes = incomeRepository.findAllIncomesByDate(startDate, endDate, userId);
+    public List<IncomeDTO> getAllIncomesByDate(LocalDate startDate, LocalDate endDate, @PathVariable Long id,Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        List<Income> incomes = incomeRepository.findAllIncomesByDate(startDate, endDate,user.getId());
         if (incomes.isEmpty()) {
             return Collections.emptyList();
         }
@@ -43,8 +48,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<ExpenseDTO> getAllExpensesByDate(LocalDate startDate, LocalDate endDate, Long userId) {
-        List<Expense> expenses = expenseRepository.findAllExpensesByDate(startDate, endDate, userId);
+    public List<ExpenseDTO> getAllExpensesByDate(LocalDate startDate, LocalDate endDate,@PathVariable Long id, Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        List<Expense> expenses = expenseRepository.findAllExpensesByDate(startDate, endDate, user.getId());
         if (expenses.isEmpty()) {
             return Collections.emptyList();
         }
@@ -54,8 +60,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<BudgetDTO> getAllBudgetsByDate(LocalDate startDate, LocalDate endDate, Long userId) {
-        List<Budget> budgets = budgetRepository.findAllBudgetsByDate(startDate, endDate, userId);
+    public List<BudgetDTO> getAllBudgetsByDate(LocalDate startDate, LocalDate endDate,@PathVariable Long id, Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        List<Budget> budgets = budgetRepository.findAllBudgetsByDate(startDate, endDate, user.getId());
 
         if (budgets.isEmpty()) {
             return Collections.emptyList();
@@ -67,8 +74,9 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<ReportDTO> getAllExpensesIncomesByDate(LocalDate startDate, LocalDate endDate, Long userId) {
-        List<ReportProjection> reports = budgetRepository.findAllExpensesIncomesByDate(startDate, endDate, userId);
+    public List<ReportDTO> getAllExpensesIncomesByDate(LocalDate startDate, LocalDate endDate,@PathVariable Long id, Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        List<ReportProjection> reports = budgetRepository.findAllExpensesIncomesByDate(startDate, endDate, user.getId());
         List<ReportDTO> reportDTOS = new ArrayList<>();
 
         for (ReportProjection reportProjection : reports) {

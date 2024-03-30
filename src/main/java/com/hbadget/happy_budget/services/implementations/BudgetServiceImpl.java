@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hbadget.happy_budget.exceptions.BudgetNotFoundException;
 import com.hbadget.happy_budget.models.dtos.BudgetDTO;
 import com.hbadget.happy_budget.models.entities.Budget;
+import com.hbadget.happy_budget.models.entities.User;
 import com.hbadget.happy_budget.models.enums.BudgetCategory;
 import com.hbadget.happy_budget.repositories.BudgetRepository;
 import com.hbadget.happy_budget.services.interfaces.BudgetService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,34 +25,44 @@ public class BudgetServiceImpl implements BudgetService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public BudgetDTO createBudget(BudgetDTO budgetDTO) {
-        Budget budget = budgetRepository.save(objectMapper.convertValue(budgetDTO, Budget.class));
+    public BudgetDTO createBudget(BudgetDTO budgetDTO, Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        Budget budget = objectMapper.convertValue(budgetDTO, Budget.class);
+        budget.setUser(user);
 
-        return objectMapper.convertValue(budget, BudgetDTO.class);
+        Budget responseBudget = budgetRepository.save(budget);
+
+        return objectMapper.convertValue(responseBudget, BudgetDTO.class);
     }
 
     @Override
-    public BudgetDTO updateBudget(BudgetDTO budgetDTO, Long id) {
+    public BudgetDTO updateBudget(BudgetDTO budgetDTO, Long id, Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         Budget budget = budgetRepository.findById(id).orElseThrow(() -> new BudgetNotFoundException("Budget not found."));
 
-        if (budgetDTO.getBudgetSum() != 0) {
-            budgetDTO.setBudgetSum(budgetDTO.getBudgetSum());
-        }
+        if(user.getId().equals(budget.getUser().getId())) {
+            if (budgetDTO.getBudgetSum() != 0) {
+                budgetDTO.setBudgetSum(budgetDTO.getBudgetSum());
+            }
 
-        if (budgetDTO.getBudgetCategory() != null) {
-            budgetDTO.setBudgetCategory(budgetDTO.getBudgetCategory());
-        }
+            if (budgetDTO.getBudgetCategory() != null) {
+                budgetDTO.setBudgetCategory(budgetDTO.getBudgetCategory());
+            }
 
-        if (budgetDTO.getBudgetDate() != null) {
-            budgetDTO.setBudgetDate(budgetDTO.getBudgetDate());
+            if (budgetDTO.getBudgetDate() != null) {
+                budgetDTO.setBudgetDate(budgetDTO.getBudgetDate());
+            }
+        } else {
+            throw new BudgetNotFoundException("Budget not found.");
         }
 
         return objectMapper.convertValue(budget, BudgetDTO.class);
     }
 
     @Override
-    public String deleteBudget(Long id) {
-
+    public String deleteBudget(Long id, Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        Budget budget = budgetRepository.findById(id).orElseThrow(() -> new BudgetNotFoundException("Budget not found."));
         if (budgetRepository.existsById(id)) {
             budgetRepository.deleteById(id);
 
@@ -60,8 +73,9 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public List<BudgetDTO> getBudgetByCategory(BudgetCategory budgetCategory) {
-        List<Budget> budgets = budgetRepository.findBudgetByCategory(budgetCategory);
+    public List<BudgetDTO> getBudgetByCategory(BudgetCategory budgetCategory, Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        List<Budget> budgets = budgetRepository.findBudgetByCategory(budgetCategory, user.getId());
 
         if (budgets.isEmpty()) {
             return Collections.emptyList();
