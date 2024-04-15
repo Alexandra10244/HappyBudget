@@ -14,6 +14,6 @@ public interface BudgetService {
 
     String deleteBudget(Long id, Principal connectedUser);
 
-    List<BudgetDTO> getBudgetByCategory(BudgetCategory budgetCategory, Principal connectedUser);
+    BudgetDTO getBudgetByCategory(BudgetCategory budgetCategory, Principal connectedUser);
 
 }

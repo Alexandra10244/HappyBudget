@@ -28,24 +28,24 @@ public class ReportController {
     private final ExpenseService expenseService;
     private final ReportService reportService;
 
-    @GetMapping("/income/{date}/{id}")
-    public ResponseEntity<List<IncomeDTO>> getAllIncomesByDate(@PathVariable LocalDate startDate, @PathVariable LocalDate endDate, @PathVariable Long id, Principal connectedUser){
-        return ResponseEntity.ok(reportService.getAllIncomesByDate(startDate, endDate, id, connectedUser));
+    @GetMapping("/incomes/{startDate}/{endDate}")
+    public ResponseEntity<List<IncomeDTO>> getAllIncomesByDate(@PathVariable LocalDate startDate, @PathVariable LocalDate endDate, Principal connectedUser){
+        return ResponseEntity.ok(reportService.getAllIncomesByDate(startDate, endDate, connectedUser));
     }
 
-    @GetMapping("/expense/{date}/{id}")
-    public ResponseEntity<List<ExpenseDTO>> getAllExpensesByDate(@PathVariable LocalDate startDate,@PathVariable LocalDate endDate, @PathVariable Long id,Principal connectedUser){
-        return ResponseEntity.ok(reportService.getAllExpensesByDate(startDate, endDate, id,connectedUser));
+    @GetMapping("/expenses/{startDate}/{endDate}")
+    public ResponseEntity<List<ExpenseDTO>> getAllExpensesByDate(@PathVariable LocalDate startDate,@PathVariable LocalDate endDate,Principal connectedUser){
+        return ResponseEntity.ok(reportService.getAllExpensesByDate(startDate, endDate,connectedUser));
     }
 
-    @GetMapping("/budget/{date}/{id}")
-    public ResponseEntity<List<BudgetDTO>> getAllBudgetsByDate(@PathVariable LocalDate startDate,@PathVariable LocalDate endDate, @PathVariable Long id,Principal connectedUser){
-        return ResponseEntity.ok(reportService.getAllBudgetsByDate(startDate, endDate, id,connectedUser));
+    @GetMapping("/budgets/{startDate}/{endDate}")
+    public ResponseEntity<List<BudgetDTO>> getAllBudgetsByDate(@PathVariable LocalDate startDate,@PathVariable LocalDate endDate,Principal connectedUser){
+        return ResponseEntity.ok(reportService.getAllBudgetsByDate(startDate, endDate,connectedUser));
     }
 
-    @GetMapping("/report/{date}/{id}")
-    public ResponseEntity<List<ReportDTO>> getAllExpensesIncomesByDate(@PathVariable LocalDate startDate,@PathVariable LocalDate endDate, @PathVariable Long id,Principal connectedUser){
-        return ResponseEntity.ok(reportService.getAllExpensesIncomesByDate(startDate, endDate, id,connectedUser));
+    @GetMapping("/reports/{startDate}/{endDate}")
+    public ResponseEntity<List<ReportDTO>> getAllExpensesIncomesByDate(@PathVariable LocalDate startDate,@PathVariable LocalDate endDate,Principal connectedUser){
+        return ResponseEntity.ok(reportService.getAllExpensesIncomesByDate(startDate, endDate,connectedUser));
     }
 
 }

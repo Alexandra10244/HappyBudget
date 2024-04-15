@@ -1,10 +1,15 @@
 package com.hbadget.happy_budget.services.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hbadget.happy_budget.exceptions.BudgetNotFoundException;
 import com.hbadget.happy_budget.exceptions.IncomeNotFoundException;
+import com.hbadget.happy_budget.models.dtos.BudgetDTO;
 import com.hbadget.happy_budget.models.dtos.IncomeDTO;
+import com.hbadget.happy_budget.models.entities.Budget;
 import com.hbadget.happy_budget.models.entities.Income;
+import com.hbadget.happy_budget.models.enums.BudgetCategory;
 import com.hbadget.happy_budget.models.enums.IncomeCategory;
+import com.hbadget.happy_budget.repositories.BudgetRepository;
 import com.hbadget.happy_budget.repositories.IncomeRepository;
 import com.hbadget.happy_budget.repositories.UserRepository;
 import com.hbadget.happy_budget.services.interfaces.IncomeService;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +30,7 @@ public class IncomeServiceImpl implements IncomeService {
 
     private final IncomeRepository incomeRepository;
     private final ObjectMapper objectMapper;
+    private final BudgetRepository budgetRepository;
 
     @Override
     public IncomeDTO createIncome(IncomeDTO incomeDTO, Principal connectedUser) {
@@ -32,15 +39,29 @@ public class IncomeServiceImpl implements IncomeService {
         income.setUser(user);
         Income responseIncome = incomeRepository.save(income);
 
+        Optional<Budget> totalBudget = budgetRepository.findTotalBudgetForUser(user.getId());
+
+        if (totalBudget.isPresent()) {
+            Budget budget = totalBudget.get();
+            budget.setBudgetSum(budget.getBudgetSum() + income.getIncomeSum());
+            budgetRepository.save(budget);
+        } else {
+            Budget budget = new Budget();
+            budget.setBudgetCategory(BudgetCategory.TOTAL);
+            budget.setBudgetSum(income.getIncomeSum());
+            budget.setUser(user);
+            budgetRepository.save(budget);
+        }
+
         return objectMapper.convertValue(responseIncome, IncomeDTO.class);
     }
 
     @Override
-    public IncomeDTO updateIncome(IncomeDTO incomeDTO, Long id,Principal connectedUser) {
+    public IncomeDTO updateIncome(IncomeDTO incomeDTO, Long id, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         Income income = incomeRepository.findById(id).orElseThrow(() -> new IncomeNotFoundException("Income not found."));
 
-        if(user.getId().equals(income.getUser().getId())) {
+        if (user.getId().equals(income.getUser().getId())) {
             if (incomeDTO.getIncomeSum() != 0) {
                 incomeDTO.setIncomeSum(incomeDTO.getIncomeSum());
             }
@@ -52,7 +73,7 @@ public class IncomeServiceImpl implements IncomeService {
             if (incomeDTO.getIncomeDate() != null) {
                 incomeDTO.setIncomeDate(incomeDTO.getIncomeDate());
             }
-        } else{
+        } else {
             throw new IncomeNotFoundException("Income not found.");
         }
 
@@ -70,23 +91,11 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public List<IncomeDTO> getIncomeByCategory(IncomeCategory incomeCategory, Principal connectedUser) {
+    public IncomeDTO getIncomeByCategory(IncomeCategory incomeCategory, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-        List<Income> incomes = incomeRepository.findIncomeByCategory(incomeCategory,user.getId());
+        Income income = incomeRepository.findIncomeByCategory(incomeCategory.toString(), user.getId()).orElseThrow(() -> new IncomeNotFoundException("Income not found."));
 
-        if (incomes.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return incomes.stream()
-                    .map(this::convertIncomeToDTO)
-                .collect(Collectors.toList());
+        return objectMapper.convertValue(income, IncomeDTO.class);
     }
 
-    private IncomeDTO convertIncomeToDTO(Income income) {
-        IncomeDTO incomeDTO = new IncomeDTO();
-        incomeDTO.setIncomeSum(income.getIncomeSum());
-        incomeDTO.setIncomeCategory(income.getIncomeCategory());
-        incomeDTO.setIncomeDate(income.getIncomeDate());
-        return incomeDTO;
-    }
 }

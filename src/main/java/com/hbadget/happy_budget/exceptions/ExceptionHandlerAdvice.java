@@ -28,6 +28,14 @@ import static org.springframework.http.HttpStatus.*;
 public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
     private final ObjectMapper objectMapper;
 
+    @ExceptionHandler(BudgetAlreadyExistsException.class)
+    public ResponseEntity<String> budgetAlreadyExistException(BudgetAlreadyExistsException budgetAlreadyExistsException) {
+        return new ResponseEntity<>(objectToString(Map.of("message", budgetAlreadyExistsException.getMessage())), BAD_REQUEST);
+    }
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<String> insufficientFundsException(InsufficientFundsException insufficientFundsException) {
+        return new ResponseEntity<>(objectToString(Map.of("message", insufficientFundsException.getMessage())), NOT_FOUND);
+    }
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> userNotFoundException(UserNotFoundException userNotFoundException) {
         return new ResponseEntity<>(objectToString(Map.of("message", userNotFoundException.getMessage())), NOT_FOUND);

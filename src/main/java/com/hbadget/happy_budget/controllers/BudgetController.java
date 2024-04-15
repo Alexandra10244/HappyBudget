@@ -36,7 +36,8 @@ public class BudgetController {
     }
 
     @GetMapping("/{budgetCategory}")
-    public ResponseEntity<List<BudgetDTO>> getBudgetByCategory(@PathVariable BudgetCategory budgetCategory,Principal connectedUser) {
+    public ResponseEntity<BudgetDTO> getBudgetByCategory(@PathVariable BudgetCategory budgetCategory,Principal connectedUser) {
         return ResponseEntity.ok(budgetService.getBudgetByCategory(budgetCategory,connectedUser));
     }
+
 }

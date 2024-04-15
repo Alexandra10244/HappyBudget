@@ -15,17 +15,17 @@ import java.util.Optional;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
-    @Query(value = "SELECT *" +
-            "FROM expenses" +
-            "WHERE expense_category = :expenseCategory"+
+    @Query(value = "SELECT * " +
+            "FROM expenses " +
+            "WHERE expense_category = :expenseCategory "+
             "AND user_id = :userId",
             nativeQuery = true)
-    List<Expense> findExpenseByCategory(@Param("expenseCategory") ExpenseCategory expenseCategory,@Param("userId") Long userId);
+   Optional<Expense> findExpenseByCategory(@Param("expenseCategory") String expenseCategory,@Param("userId") Long userId);
 
-    @Query(value = "SELECT expenses.expense_sum, expenses.expense_category, expenses.expense_date" +
-            "FROM expenses" +
-            "WHERE DATE(expenses.expense_date) >= :startDate" +
-            "AND DATE(expenses.expense_date) <= :endDate" +
+    @Query(value = "SELECT * " +
+            "FROM expenses " +
+            "WHERE DATE(expenses.expense_date) >= :startDate " +
+            "AND DATE(expenses.expense_date) <= :endDate " +
             "AND user_id = :userId",
             nativeQuery = true)
     List<Expense> findAllExpensesByDate(@Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate, @Param("userId") Long userId);

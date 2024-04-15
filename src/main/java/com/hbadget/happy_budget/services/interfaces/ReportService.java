@@ -12,12 +12,12 @@ import java.util.List;
 
 public interface ReportService {
 
-    List<IncomeDTO> getAllIncomesByDate(LocalDate startDate, LocalDate endDate, Long id,Principal connectedUser);
+    List<IncomeDTO> getAllIncomesByDate(LocalDate startDate, LocalDate endDate,Principal connectedUser);
 
-    List<ExpenseDTO> getAllExpensesByDate(LocalDate startDate, LocalDate endDate, Long id,Principal connectedUser);
+    List<ExpenseDTO> getAllExpensesByDate(LocalDate startDate, LocalDate endDate,Principal connectedUser);
 
-    List<BudgetDTO> getAllBudgetsByDate(LocalDate startDate, LocalDate endDate, Long id,Principal connectedUser);
+    List<BudgetDTO> getAllBudgetsByDate(LocalDate startDate, LocalDate endDate,Principal connectedUser);
 
-    List<ReportDTO> getAllExpensesIncomesByDate(LocalDate startDate, LocalDate endDate, Long id,Principal connectedUser);
+    List<ReportDTO> getAllExpensesIncomesByDate(LocalDate startDate, LocalDate endDate,Principal connectedUser);
 
 }

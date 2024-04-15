@@ -14,5 +14,5 @@ public interface ExpenseService {
 
     String deleteExpense(Long id, Principal connectedUser);
 
-   List<ExpenseDTO> getExpenseByCategory(ExpenseCategory expenseCategory, Principal connectedUser);
+   ExpenseDTO getExpenseByCategory(ExpenseCategory expenseCategory, Principal connectedUser);
 }

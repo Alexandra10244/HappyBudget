@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
@@ -25,19 +26,31 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
             nativeQuery = true)
     List<ReportProjection> findAllExpensesIncomesByDate(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("userId") Long userId);
 
-    @Query(value = "SELECT *" +
-            "FROM budgets" +
-            "WHERE budget_category = :budgetCategory" +
+    @Query(value = "SELECT * " +
+            "FROM budgets " +
+            "WHERE budget_category = :budgetCategory " +
             "AND user_id = :userId",
             nativeQuery = true)
-    List<Budget> findBudgetByCategory(@Param("budgetCategory") BudgetCategory budgetCategory, @Param("userId") Long userId);
+    Optional<Budget> findBudgetByCategory(@Param("budgetCategory") String budgetCategory, @Param("userId") Long userId);
 
-    @Query(value = "SELECT budget.budget_sum, budgets.budget_category, budgets.budget_date" +
-            "FROM budgets" +
-            "WHERE DATE(budgets.budget_date) >= :startDate" +
-            "AND DATE(budgets.budget_date) <= :endDate" +
+    @Query(value = "SELECT budget.budget_sum, budgets.budget_category, budgets.budget_date " +
+            "FROM budgets " +
+            "WHERE DATE(budgets.budget_date) >= :startDate " +
+            "AND DATE(budgets.budget_date) <= :endDate " +
             "AND user_id = :userId",
             nativeQuery = true)
     List<Budget> findAllBudgetsByDate(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("userId") Long userId);
 
+    @Query(value = "SELECT * " +
+            "FROM budgets " +
+            "WHERE budget_category = 'TOTAL' " +
+            "AND user_id = :userId",
+            nativeQuery = true)
+    Optional<Budget> findTotalBudgetForUser(@Param("userId") Long userId);
+
+    @Query(value = "SELECT * " +
+            "FROM budgets " +
+            "WHERE user_id = :userId",
+            nativeQuery = true)
+    List<Budget> findAllBudgetsForUser(@Param("userId") Long userId);
 }

@@ -36,7 +36,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/{expenseCategory}")
-    public ResponseEntity<List<ExpenseDTO>> getExpenseByCategory(@PathVariable ExpenseCategory expenseCategory,Principal connectedUser) {
+    public ResponseEntity<ExpenseDTO> getExpenseByCategory(@PathVariable ExpenseCategory expenseCategory,Principal connectedUser) {
         return ResponseEntity.ok(expenseService.getExpenseByCategory(expenseCategory,connectedUser));
     }
 }

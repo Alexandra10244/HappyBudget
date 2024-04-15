@@ -2,6 +2,7 @@ package com.hbadget.happy_budget.services.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hbadget.happy_budget.exceptions.BudgetNotFoundException;
+import com.hbadget.happy_budget.exceptions.InsufficientFundsException;
 import com.hbadget.happy_budget.models.dtos.BudgetDTO;
 import com.hbadget.happy_budget.models.entities.Budget;
 import com.hbadget.happy_budget.models.entities.User;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,11 +30,31 @@ public class BudgetServiceImpl implements BudgetService {
     public BudgetDTO createBudget(BudgetDTO budgetDTO, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         Budget budget = objectMapper.convertValue(budgetDTO, Budget.class);
-        budget.setUser(user);
 
-        Budget responseBudget = budgetRepository.save(budget);
+        Budget totalBudget = budgetRepository.findTotalBudgetForUser(user.getId()).orElseThrow(() -> new BudgetNotFoundException("Budget not found."));
+        List<Budget> allBudgets = budgetRepository.findAllBudgetsForUser(user.getId());
+        double allCategorySum = 0;
+        for (Budget budgetCategory : allBudgets) {
+            if (!budgetCategory.getBudgetCategory().equals(BudgetCategory.TOTAL)) {
+                allCategorySum += budgetCategory.getBudgetSum();
+            }
+        }
 
-        return objectMapper.convertValue(responseBudget, BudgetDTO.class);
+        if (budgetRepository.findBudgetByCategory(budgetDTO.getBudgetCategory().toString(), user.getId()).isEmpty()) {
+            if (totalBudget.getBudgetSum() - allCategorySum >= budgetDTO.getBudgetSum()) {
+                budget.setUser(user);
+                Budget responseBudget = budgetRepository.save(budget);
+
+                return objectMapper.convertValue(responseBudget, BudgetDTO.class);
+            } else {
+                throw new InsufficientFundsException("Insufficient funds for creating new budget.");
+            }
+
+        } else {
+            throw new RuntimeException("Budget already exists.");
+        }
+
+
     }
 
     @Override
@@ -40,7 +62,7 @@ public class BudgetServiceImpl implements BudgetService {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         Budget budget = budgetRepository.findById(id).orElseThrow(() -> new BudgetNotFoundException("Budget not found."));
 
-        if(user.getId().equals(budget.getUser().getId())) {
+        if (user.getId().equals(budget.getUser().getId())) {
             if (budgetDTO.getBudgetSum() != 0) {
                 budgetDTO.setBudgetSum(budgetDTO.getBudgetSum());
             }
@@ -73,16 +95,11 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public List<BudgetDTO> getBudgetByCategory(BudgetCategory budgetCategory, Principal connectedUser) {
+    public BudgetDTO getBudgetByCategory(BudgetCategory budgetCategory, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-        List<Budget> budgets = budgetRepository.findBudgetByCategory(budgetCategory, user.getId());
+        Budget budget = budgetRepository.findBudgetByCategory(budgetCategory.toString(), user.getId()).orElseThrow(() -> new BudgetNotFoundException("Budget not found."));
 
-        if (budgets.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return budgets.stream()
-                .map(this::convertBudgetToDTO)
-                .collect(Collectors.toList());
+        return objectMapper.convertValue(budget, BudgetDTO.class);
     }
 
     private BudgetDTO convertBudgetToDTO(Budget budget) {
