@@ -14,5 +14,7 @@ public interface IncomeService {
 
     String deleteIncome(Long id,Principal connectedUser);
 
-    IncomeDTO getIncomeByCategory(IncomeCategory incomeCategory, Principal connectedUser);
+    List<IncomeDTO> getIncomeByCategory(IncomeCategory incomeCategory, Principal connectedUser);
+
+    List<IncomeDTO> getAllIncomesForUser(Principal connectedUser);
 }

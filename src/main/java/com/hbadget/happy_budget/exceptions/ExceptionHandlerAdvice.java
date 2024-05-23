@@ -66,6 +66,11 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(objectToString(Map.of("message", invalidEmailFormatException.getMessage())), CONFLICT);
     }
 
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<String> authException(AuthException authException) {
+        return new ResponseEntity<>(objectToString(Map.of("message", authException.getMessage())), BAD_REQUEST);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
         Map<String, String> errors = new LinkedHashMap<>();

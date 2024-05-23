@@ -35,34 +35,17 @@ public class ExpenseServiceImpl implements ExpenseService {
     public ExpenseDTO createExpense(ExpenseDTO expenseDTO, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
 
-        Budget totalBudget = budgetRepository.findTotalBudgetForUser(user.getId()).orElseThrow(() -> new BudgetNotFoundException("Budget not found."));
-        List<Budget> allBudgets = budgetRepository.findAllBudgetsForUser(user.getId());
-        double allCategorySum = 0;
-        for (Budget budget : allBudgets) {
-            if (!budget.getBudgetCategory().equals(BudgetCategory.TOTAL)) {
-                allCategorySum += budget.getBudgetSum();
-            }
-        }
-
         Optional<Budget> selectedCategoryBudgetOptional = budgetRepository.findBudgetByCategory(expenseDTO.getExpenseCategory().toString(), user.getId());
         if (selectedCategoryBudgetOptional.isPresent()) {
             Budget selectedCategoryBudget = selectedCategoryBudgetOptional.get();
             if (selectedCategoryBudget.getBudgetSum() >= expenseDTO.getExpenseSum()) {
                 selectedCategoryBudget.setBudgetSum(selectedCategoryBudget.getBudgetSum() - expenseDTO.getExpenseSum());
-                totalBudget.setBudgetSum(totalBudget.getBudgetSum() - expenseDTO.getExpenseSum());
                 budgetRepository.save(selectedCategoryBudget);
-                budgetRepository.save(totalBudget);
             } else {
-                throw new InsufficientFundsException("Insufficient Funds.");
+                throw new InsufficientFundsException("Insufficient Funds. Expense exceeds Budget!");
             }
         } else {
-            if (totalBudget.getBudgetSum() - allCategorySum >= expenseDTO.getExpenseSum()) {
-                totalBudget.setBudgetSum(totalBudget.getBudgetSum() - expenseDTO.getExpenseSum());
-
-                budgetRepository.save(totalBudget);
-            } else {
-                throw new InsufficientFundsException("Insufficient Funds.");
-            }
+            throw new BudgetNotFoundException("Create a budget with the same category as this Expense");
         }
 
         Expense expense = objectMapper.convertValue(expenseDTO, Expense.class);
@@ -71,28 +54,42 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         return objectMapper.convertValue(responseExpense, ExpenseDTO.class);
     }
-
     @Override
     public ExpenseDTO updateExpense(ExpenseDTO expenseDTO, Long id, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         Expense expense = expenseRepository.findById(id).orElseThrow(() -> new ExpenseNotFoundException("Expense not found."));
+        Budget selectedCategoryBudget = budgetRepository.findBudgetByCategory(expenseDTO.getExpenseCategory().toString(), user.getId()).orElseThrow(() -> new BudgetNotFoundException("No budget for this expense category"));
 
         if (user.getId().equals(expense.getUser().getId())) {
-            if (expenseDTO.getExpenseSum() != 0) {
-                expenseDTO.setExpenseSum(expenseDTO.getExpenseSum());
+            if (expenseDTO.getTitle() != null && !expenseDTO.getTitle().isEmpty()) {
+                expense.setTitle(expenseDTO.getTitle());
             }
-
+            if (expenseDTO.getExpenseSum() != 0) {
+                if(expenseDTO.getExpenseSum() < expense.getExpenseSum()){
+                    selectedCategoryBudget.setBudgetSum(selectedCategoryBudget.getBudgetSum() + (expense.getExpenseSum() - expenseDTO.getExpenseSum()));
+                    budgetRepository.save(selectedCategoryBudget);
+                    expense.setExpenseSum(expenseDTO.getExpenseSum());
+                }else if (expenseDTO.getExpenseSum() > expense.getExpenseSum()){
+                    if(selectedCategoryBudget.getBudgetSum() >= (expenseDTO.getExpenseSum() - expense.getExpenseSum())){
+                        selectedCategoryBudget.setBudgetSum(selectedCategoryBudget.getBudgetSum() - (expenseDTO.getExpenseSum() - expense.getExpenseSum()));
+                        budgetRepository.save(selectedCategoryBudget);
+                        expense.setExpenseSum(expenseDTO.getExpenseSum());
+                    }else {
+                        throw new InsufficientFundsException("Insufficient funds in Budget!");
+                    }
+                }
+            }
             if (expenseDTO.getExpenseDate() != null) {
-                expenseDTO.setExpenseDate(expenseDTO.getExpenseDate());
+                expense.setExpenseDate(expenseDTO.getExpenseDate());
             }
 
             if (expenseDTO.getExpenseCategory() != null) {
-                expenseDTO.setExpenseCategory(expenseDTO.getExpenseCategory());
+                expense.setExpenseCategory(expenseDTO.getExpenseCategory());
             }
+            expenseRepository.save(expense);
         } else {
             throw new ExpenseNotFoundException("Expense not found.");
         }
-
         return objectMapper.convertValue(expense, ExpenseDTO.class);
     }
 
@@ -100,22 +97,33 @@ public class ExpenseServiceImpl implements ExpenseService {
     public String deleteExpense(Long id, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         Expense expense = expenseRepository.findById(id).orElseThrow(() -> new ExpenseNotFoundException("Expense not found."));
+        Budget selectedCategoryBudget = budgetRepository.findBudgetByCategory(expense.getExpenseCategory().toString(), user.getId()).orElseThrow(() -> new BudgetNotFoundException("No budget for this expense category"));
         if (user.getId().equals(expense.getUser().getId())) {
+            selectedCategoryBudget.setBudgetSum(selectedCategoryBudget.getBudgetSum() + expense.getExpenseSum());
+            budgetRepository.save(selectedCategoryBudget);
             expenseRepository.deleteById(id);
         }
         return "The expense was deleted.";
     }
 
     @Override
-    public ExpenseDTO getExpenseByCategory(ExpenseCategory expenseCategory, Principal connectedUser) {
+    public List<ExpenseDTO> getExpenseByCategory(ExpenseCategory expenseCategory, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-        Expense expense = expenseRepository.findExpenseByCategory(expenseCategory.toString(), user.getId()).orElseThrow(() -> new ExpenseNotFoundException("Expense not found."));
+        List<Expense> expenses = expenseRepository.findExpensesByCategory(expenseCategory.toString(), user.getId());
 
-        return objectMapper.convertValue(expense, ExpenseDTO.class);
+        return expenses.stream().map(this::convertExpenseToDTO).toList();
     }
 
+    @Override
+    public List<ExpenseDTO> getExpenses(Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        List<Expense> expenseList = expenseRepository.findAllExpensesForUser(user.getId());
+        return expenseList.stream().map(this::convertExpenseToDTO).toList();
+    }
     private ExpenseDTO convertExpenseToDTO(Expense expense) {
         ExpenseDTO expenseDTO = new ExpenseDTO();
+        expenseDTO.setId(expense.getId());
+        expenseDTO.setTitle(expense.getTitle());
         expenseDTO.setExpenseSum(expense.getExpenseSum());
         expenseDTO.setExpenseCategory(expense.getExpenseCategory());
         expenseDTO.setExpenseDate(expense.getExpenseDate());

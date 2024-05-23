@@ -20,7 +20,13 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             "WHERE expense_category = :expenseCategory "+
             "AND user_id = :userId",
             nativeQuery = true)
-   Optional<Expense> findExpenseByCategory(@Param("expenseCategory") String expenseCategory,@Param("userId") Long userId);
+    List<Expense> findExpensesByCategory(@Param("expenseCategory") String expenseCategory,@Param("userId") Long userId);
+
+    @Query(value = "SELECT * " +
+            "FROM expenses " +
+            "WHERE user_id = :userId",
+            nativeQuery = true)
+    List<Expense> findAllExpensesForUser(@Param("userId") Long userId);
 
     @Query(value = "SELECT * " +
             "FROM expenses " +

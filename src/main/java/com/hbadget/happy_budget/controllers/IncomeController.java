@@ -36,7 +36,12 @@ public class IncomeController {
     }
 
     @GetMapping("/{incomeCategory}")
-    public ResponseEntity<IncomeDTO> getIncomeByCategory(@PathVariable IncomeCategory incomeCategory, Principal connectedUser) {
+    public ResponseEntity<List<IncomeDTO>> getIncomeByCategory(@PathVariable IncomeCategory incomeCategory, Principal connectedUser) {
         return ResponseEntity.ok(incomeService.getIncomeByCategory(incomeCategory, connectedUser));
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<IncomeDTO>> getUsersIncomes(Principal connectedUser) {
+        return ResponseEntity.ok(incomeService.getAllIncomesForUser(connectedUser));
     }
 }

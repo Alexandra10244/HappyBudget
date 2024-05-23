@@ -3,6 +3,7 @@ package com.hbadget.happy_budget.repositories;
 import com.hbadget.happy_budget.models.entities.Token;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +18,10 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
     List<Token> findAllValidTokenByUser(Long id);
 
     Optional<Token> findByToken(String token);
+
+    @Query(value = "SELECT expired " +
+            "FROM token " +
+            "WHERE token = :token ",
+            nativeQuery = true)
+    Optional<Boolean> tokenIsExpired(@Param("token") String token);
 }

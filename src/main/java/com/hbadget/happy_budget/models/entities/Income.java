@@ -17,6 +17,8 @@ public class Income {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String title;
+
     @Column(name = "income_sum")
     private double incomeSum;
 

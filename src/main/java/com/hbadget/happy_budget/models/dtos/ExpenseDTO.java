@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 public class ExpenseDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long id;
+
+    private String title;
+
     private double expenseSum;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -97,6 +97,7 @@ public class ReportServiceImpl implements ReportService {
     private IncomeDTO convertIncomeToDTO(Income income) {
         IncomeDTO incomeDTO = new IncomeDTO();
         incomeDTO.setId(income.getId());
+        incomeDTO.setTitle(income.getTitle());
         incomeDTO.setIncomeSum(income.getIncomeSum());
         incomeDTO.setIncomeCategory(income.getIncomeCategory());
         incomeDTO.setIncomeDate(income.getIncomeDate());
@@ -106,6 +107,7 @@ public class ReportServiceImpl implements ReportService {
     private ExpenseDTO convertExpenseToDTO(Expense expense) {
         ExpenseDTO expenseDTO = new ExpenseDTO();
         expenseDTO.setId(expense.getId());
+        expenseDTO.setTitle(expense.getTitle());
         expenseDTO.setExpenseSum(expense.getExpenseSum());
         expenseDTO.setExpenseCategory(expense.getExpenseCategory());
         expenseDTO.setExpenseDate(expense.getExpenseDate());

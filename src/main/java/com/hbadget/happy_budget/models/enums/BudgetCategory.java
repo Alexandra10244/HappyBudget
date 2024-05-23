@@ -12,5 +12,6 @@ public enum BudgetCategory {
     ENTERTAINMENT,
     SAVINGS,
     WISHES,
-    TOTAL
+    TOTAL,
+    UNUSED
 }

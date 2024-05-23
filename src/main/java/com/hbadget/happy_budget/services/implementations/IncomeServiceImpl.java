@@ -3,6 +3,7 @@ package com.hbadget.happy_budget.services.implementations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hbadget.happy_budget.exceptions.BudgetNotFoundException;
 import com.hbadget.happy_budget.exceptions.IncomeNotFoundException;
+import com.hbadget.happy_budget.exceptions.InsufficientFundsException;
 import com.hbadget.happy_budget.models.dtos.BudgetDTO;
 import com.hbadget.happy_budget.models.dtos.IncomeDTO;
 import com.hbadget.happy_budget.models.entities.Budget;
@@ -19,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -39,18 +41,19 @@ public class IncomeServiceImpl implements IncomeService {
         income.setUser(user);
         Income responseIncome = incomeRepository.save(income);
 
-        Optional<Budget> totalBudget = budgetRepository.findTotalBudgetForUser(user.getId());
+        Optional<Budget> unusedBudgetOptional = budgetRepository.findUnusedBudgetForUser(user.getId());
 
-        if (totalBudget.isPresent()) {
-            Budget budget = totalBudget.get();
-            budget.setBudgetSum(budget.getBudgetSum() + income.getIncomeSum());
-            budgetRepository.save(budget);
+        if (unusedBudgetOptional.isPresent()) {
+            Budget unusedBudget = unusedBudgetOptional.get();
+            unusedBudget.setBudgetSum(unusedBudget.getBudgetSum() + income.getIncomeSum());
+            budgetRepository.save(unusedBudget);
         } else {
-            Budget budget = new Budget();
-            budget.setBudgetCategory(BudgetCategory.TOTAL);
-            budget.setBudgetSum(income.getIncomeSum());
-            budget.setUser(user);
-            budgetRepository.save(budget);
+            Budget unusedBudget = new Budget();
+            unusedBudget.setBudgetCategory(BudgetCategory.UNUSED);
+            unusedBudget.setBudgetSum(income.getIncomeSum());
+            unusedBudget.setBudgetDate(LocalDateTime.now());
+            unusedBudget.setUser(user);
+            budgetRepository.save(unusedBudget);
         }
 
         return objectMapper.convertValue(responseIncome, IncomeDTO.class);
@@ -60,19 +63,35 @@ public class IncomeServiceImpl implements IncomeService {
     public IncomeDTO updateIncome(IncomeDTO incomeDTO, Long id, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         Income income = incomeRepository.findById(id).orElseThrow(() -> new IncomeNotFoundException("Income not found."));
+        Budget unusedBudget = budgetRepository.findUnusedBudgetForUser(user.getId()).orElseThrow(() -> new BudgetNotFoundException("Unused Budget not set"));
 
         if (user.getId().equals(income.getUser().getId())) {
+            if (incomeDTO.getTitle() != null && !incomeDTO.getTitle().isEmpty()) {
+                income.setTitle(incomeDTO.getTitle());
+            }
             if (incomeDTO.getIncomeSum() != 0) {
-                incomeDTO.setIncomeSum(incomeDTO.getIncomeSum());
-            }
+                if (incomeDTO.getIncomeSum() >= income.getIncomeSum()) {
+                    unusedBudget.setBudgetSum(unusedBudget.getBudgetSum() + (incomeDTO.getIncomeSum() - income.getIncomeSum()));
+                    income.setIncomeSum(incomeDTO.getIncomeSum());
+                    budgetRepository.save(unusedBudget);
+                } else {
+                    if (unusedBudget.getBudgetSum() - (income.getIncomeSum() - incomeDTO.getIncomeSum()) >= 0) {
+                        unusedBudget.setBudgetSum(unusedBudget.getBudgetSum() - (income.getIncomeSum() - incomeDTO.getIncomeSum()));
+                        income.setIncomeSum(incomeDTO.getIncomeSum());
+                        budgetRepository.save(unusedBudget);
+                    } else {
+                        throw new InsufficientFundsException("Insufficient founds. Income spent! Delete expenses to update income with lower sum!");
+                    }
+                }
 
+            }
             if (incomeDTO.getIncomeCategory() != null) {
-                incomeDTO.setIncomeCategory(incomeDTO.getIncomeCategory());
+                income.setIncomeCategory(incomeDTO.getIncomeCategory());
             }
-
             if (incomeDTO.getIncomeDate() != null) {
-                incomeDTO.setIncomeDate(incomeDTO.getIncomeDate());
+                income.setIncomeDate(incomeDTO.getIncomeDate());
             }
+            incomeRepository.save(income);
         } else {
             throw new IncomeNotFoundException("Income not found.");
         }
@@ -84,18 +103,40 @@ public class IncomeServiceImpl implements IncomeService {
     public String deleteIncome(Long id, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         Income income = incomeRepository.findById(id).orElseThrow(() -> new IncomeNotFoundException("Income not found."));
+        Budget unusedBudget = budgetRepository.findUnusedBudgetForUser(user.getId()).orElseThrow(() -> new BudgetNotFoundException("Unused Budget not set"));
         if (user.getId().equals(income.getUser().getId())) {
-            incomeRepository.deleteById(id);
+            if (unusedBudget.getBudgetSum() - income.getIncomeSum() >= 0) {
+                unusedBudget.setBudgetSum(unusedBudget.getBudgetSum() - income.getIncomeSum());
+                incomeRepository.deleteById(id);
+            } else {
+                throw new InsufficientFundsException("Insufficient founds. Income spent! Delete expenses in order to delete income!");
+            }
         }
         return "Income deleted.";
     }
 
     @Override
-    public IncomeDTO getIncomeByCategory(IncomeCategory incomeCategory, Principal connectedUser) {
+    public List<IncomeDTO> getIncomeByCategory(IncomeCategory incomeCategory, Principal connectedUser) {
         User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
-        Income income = incomeRepository.findIncomeByCategory(incomeCategory.toString(), user.getId()).orElseThrow(() -> new IncomeNotFoundException("Income not found."));
+        List<Income> incomes = incomeRepository.findIncomesByCategory(incomeCategory.toString(), user.getId());
 
-        return objectMapper.convertValue(income, IncomeDTO.class);
+        return incomes.stream().map(this::convertIncomeToDTO).toList();
     }
 
+    @Override
+    public List<IncomeDTO> getAllIncomesForUser(Principal connectedUser) {
+        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+        List<Income> incomes = incomeRepository.findAllIncomesForUser(user.getId());
+        return incomes.stream().map(this::convertIncomeToDTO).toList();
+    }
+
+    private IncomeDTO convertIncomeToDTO(Income income) {
+        IncomeDTO incomeDTO = new IncomeDTO();
+        incomeDTO.setId(income.getId());
+        incomeDTO.setTitle(income.getTitle());
+        incomeDTO.setIncomeSum(income.getIncomeSum());
+        incomeDTO.setIncomeCategory(income.getIncomeCategory());
+        incomeDTO.setIncomeDate(income.getIncomeDate());
+        return incomeDTO;
+    }
 }

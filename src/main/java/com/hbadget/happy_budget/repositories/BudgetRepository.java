@@ -1,7 +1,6 @@
 package com.hbadget.happy_budget.repositories;
 
 import com.hbadget.happy_budget.models.entities.Budget;
-import com.hbadget.happy_budget.models.enums.BudgetCategory;
 import com.hbadget.happy_budget.repositories.projections.ReportProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,7 +30,20 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
             "WHERE budget_category = :budgetCategory " +
             "AND user_id = :userId",
             nativeQuery = true)
+    List<Budget> findBudgetsByCategory(@Param("budgetCategory") String budgetCategory, @Param("userId") Long userId);
+
+    @Query(value = "SELECT * " +
+            "FROM budgets " +
+            "WHERE budget_category = :budgetCategory " +
+            "AND user_id = :userId",
+            nativeQuery = true)
     Optional<Budget> findBudgetByCategory(@Param("budgetCategory") String budgetCategory, @Param("userId") Long userId);
+
+    @Query(value = "SELECT * " +
+            "FROM budgets " +
+            "WHERE user_id = :userId",
+            nativeQuery = true)
+    List<Budget> findBudgetsForUser(@Param("userId") Long userId);
 
     @Query(value = "SELECT budget.budget_sum, budgets.budget_category, budgets.budget_date " +
             "FROM budgets " +
@@ -47,6 +59,14 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
             "AND user_id = :userId",
             nativeQuery = true)
     Optional<Budget> findTotalBudgetForUser(@Param("userId") Long userId);
+
+
+    @Query(value = "SELECT * " +
+            "FROM budgets " +
+            "WHERE budget_category = 'UNUSED' " +
+            "AND user_id = :userId",
+            nativeQuery = true)
+    Optional<Budget> findUnusedBudgetForUser(@Param("userId") Long userId);
 
     @Query(value = "SELECT * " +
             "FROM budgets " +

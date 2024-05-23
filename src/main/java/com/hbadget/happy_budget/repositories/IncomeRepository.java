@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface IncomeRepository extends JpaRepository<Income, Long> {
-    @Query(value = "SELECT incomes.income_sum, incomes.income_category, incomes.income_date " +
+    @Query(value = "SELECT * " +
             "FROM incomes " +
             "WHERE DATE(incomes.income_date) >= :startDate " +
             "AND DATE(incomes.income_date) <= :endDate " +
@@ -26,5 +26,11 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             "WHERE income_category = :incomeCategory " +
             "AND user_id = :userId",
             nativeQuery = true)
-    Optional<Income> findIncomeByCategory(@Param("incomeCategory") String incomeCategory, @Param("userId") Long userId);
+    List<Income> findIncomesByCategory(@Param("incomeCategory") String incomeCategory, @Param("userId") Long userId);
+
+    @Query(value = "SELECT * " +
+            "FROM incomes " +
+            "WHERE user_id = :userId",
+            nativeQuery = true)
+    List<Income> findAllIncomesForUser( @Param("userId") Long userId);
 }
